@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.io.wavfile import read as wavread
 import math
+import matplotlib.pyplot as plt
 
 ### Block Audio ###
 def block_audio(x,blockSize,hopSize,fs):
@@ -15,7 +16,6 @@ def block_audio(x,blockSize,hopSize,fs):
         i_stop = np.min([x.size - 1, i_start + blockSize - 1])
         xb[n][np.arange(0,blockSize)] = x[np.arange(i_start, i_stop + 1)]
     return (xb,t)
-
 ### Read Audio ###
 def ToolReadAudio(cAudioFilePath):
     [samplerate, x] = wavread(cAudioFilePath)
@@ -35,24 +35,39 @@ def ToolReadAudio(cAudioFilePath):
         audio = audio - 1.
     return(samplerate, audio)
 
-def extract_spectral_flux(xb):
-    [nBlocks_,blockSize_] = xb.shape
-    # nBlocks_ = xb[0].size
-    # blockSize_ = xb[1].size
-    SpecFluxVector = np.zeros(nBlocks_)
+def stft(xb):
+    w = np.hanning(xb.size)
+    xb = xb * w
+    X = np.fft.fft(xb)
+    return X
 
-    Hann = np.hanning(blockSize_)
-    Spectrogram = np.abs(np.fft.fft(xb*Hann,2*blockSize_))
-    Spectrogram_ = Spectrogram[:,:blockSize_]
-    Spectrogram_1 = np.concatenate((np.zeros((1,blockSize_)),Spectrogram_),axis=0)
-    
-    SpecDiff = np.diff(Spectrogram_1, axis=0)
-    SpecFluxVector = np.sqrt(np.sum(SpecDiff**2, axis=1))/(blockSize_/2)
-    logscale = 20 * np.log10(SpecFluxVector[:-1]/SpecFluxVector[1:])
-    return logscale 
+def extract_stft(x, blockSize, hopSize, fs):
+    xb,t = block_audio(x, blockSize, hopSize, fs)
+    block_num = math.ceil(x.size / hopSize)
+    X = np.zeros([block_num, blockSize])
+    for i in range(0,block_num):
+        X[i,:] = stft(xb[i])
+    # X = 20 * np.log10(X)
+    # X = np.clip(X, -40, 200)
+    print(X)
+    diff = X[1:] / X[:-1]
+    log_diff = 20 * np.log10(diff)
+    print(log_diff)
+    return X, t
 
 
-fs, audio = ToolReadAudio('ACA Final Project/Kick/02_Kick_Clicky.wav')
-[xb, time] = block_audio(audio, 2048, 512, fs)
-stft = extract_spectral_flux(xb)
-print(stft.size)
+# Test Signal
+fs = 44100
+x = 1 * np.cos(2*np.pi * 50 * np.arange(0, 1, 1/fs))
+x2 = 1 * np.cos(2*np.pi * 1000 * np.arange(0, 1, 1/fs))
+sinusoid = np.concatenate([x,x2])
+
+[fs, audio] = ToolReadAudio('ACA Final Project/MusicDelta_80sRock_Drum.wav')
+X, t = extract_stft(audio, 2048, 512, fs)
+print(X.shape)
+print(t.size)
+# plt.imshow(X, origin='lower', cmap='jet', interpolation='nearest', aspect='auto')
+# plt.plot(X)
+plt.show()
+
+
