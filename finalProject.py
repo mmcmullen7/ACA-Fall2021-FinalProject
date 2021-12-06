@@ -5,13 +5,6 @@ Created on Tue Oct 19 11:07:26 2021
 @author: mbate
 """
 
-datasetPath = "MDB Drums"
-path = "MDB Drums/audio/full_mix/MusicDelta_Britpop_MIX.wav"
-
-blockSize = 1024
-hopSize = 256
-sampleRate = 44100
-
 import numpy as np
 import math
 import scipy as sp
@@ -23,6 +16,18 @@ import os
 
 import warnings
 warnings.filterwarnings("ignore")
+
+datasetPath = "MDB Drums"
+path = "MDB Drums/audio/drum_only/MusicDelta_Zeppelin_Drum.wav"
+fs, x = wavfile.read(path)
+if len(np.shape(x)) > 1:
+    x = 0.5 * (x[:, 0] + x[:, 1])
+
+blockSize = 1024
+hopSize = 256
+sampleRate = 44100
+
+
 
 def block_audio(x,blockSize,hopSize,fs):
     # allocate memory
@@ -85,14 +90,89 @@ def extract_spectral_flux(x, blockSize, hopSize, fs):
             
     return sFlux 
 
-def draw_spec_flux(x, sFlux, t, fs):
+def draw_spec_flux(x, sFlux, t, fs, threshold, result, onsetTimes, onsets):
     
     x =  np.max(sFlux) * x / np.max(x)
     time = np.arange(0, len(x)) * (1/fs)
     fig, ax = plt.subplots()
     ax.plot(time, x, color = 'k')
     ax.plot(t, sFlux, color = 'r', marker = '.')
+    ax.plot(t, threshold, color = 'g', marker = '.')
+    ax.plot(t, result, color = 'c', marker = '.')
+    ax.plot(onsetTimes,onsets, 'o',   color = 'm', marker = '.')
     
+def sFlux_smoother(sFlux, f):
+    
+    b, a = butter(1, f, 'lowpass')
+    sFlux_smoothed = filtfilt(b, a, sFlux)
+    
+    return sFlux_smoothed
+    
+def movAvg(sFlux, windowSize):
+    
+    avgVec = np.zeros(sFlux.shape[0])
+    beg_zero_pad = np.zeros(windowSize)
+    end_zero_pad = np.zeros(1);
+    for i in np.arange(0, len(sFlux)):
+        
+        if i < windowSize:
+            avgVec[i] = np.mean(np.concatenate((beg_zero_pad, sFlux[0: i + windowSize])))
+            beg_zero_pad = np.delete(beg_zero_pad, 0)
+        elif i > avgVec.shape[0] - windowSize:
+            avgVec[i] = np.mean(np.concatenate((sFlux[i:sFlux.shape[0]], end_zero_pad)))
+            end_zero_pad = np.append(end_zero_pad, 0)
+        else:
+            avgVec[i] = np.mean(sFlux[i-windowSize:i+windowSize])
+            
+    
+    return avgVec
+
+def peakPicker(sFlux, sFlux_smoothed, avgVec, t):
+    
+    difference = sFlux_smoothed - avgVec
+    difference[difference < 0] = 0
+    lam = np.mean(difference) * 3/4
+    threshold = avgVec + lam
+    
+    result = sFlux_smoothed - threshold
+    result[result < 0] = 0
+    
+    peakNDXs = np.empty(0)
+    for i in np.arange(0, result.shape[0] - 1):
+        
+        if i == 0:
+            if result[i] > result[i + 1]:
+                peakNDXs = np.append(peakNDXs, [i])
+        elif (result[i] > result[i - 1]) and (result[i] > result[i + 1]):
+                peakNDXs = np.append(peakNDXs, [i])
+   
+    onsetTimes = np.empty(0)
+    onsets = onsetTimes
+    for i in np.arange(0, peakNDXs.shape[0]):
+        
+        iNDX = np.uintp(peakNDXs[i])
+        onsetTimes = np.append(onsetTimes, t[iNDX])
+        onsets = np.append(onsets, sFlux[iNDX])
+    
+    return threshold, result, onsetTimes, onsets
+
+def onset_detector(path, blockSize, hopSize, avgWindow, f_over_fn):
+    
+    fs, x = wavfile.read(path)
+    if len(np.shape(x)) > 1:
+        x = 0.5 * (x[:, 0] + x[:, 1])
+        
+    xb, t = block_audio(x, blockSize, hopSize, fs)
+    X, fInHz = compute_spectrogram(xb, fs)
+    sFlux = extract_spectral_flux(x, blockSize, hopSize, fs)
+    sFlux_smoothed = sFlux_smoother(sFlux, f_over_fn)
+    avgVec = movAvg(sFlux, avgWindow)
+    threshold, result, onsetTimes, onsets = peakPicker(sFlux, sFlux_smoothed, avgVec, t)
+    draw_spec_flux(x, sFlux, t, fs, threshold, result, onsetTimes, onsets)
+    
+    return onsetTimes
+
+
 # def create_training_dataSet(datasetPath):
      
 #     for root, dirs, filenames in os.walk(datasetPath):
@@ -117,7 +197,6 @@ def draw_spec_flux(x, sFlux, t, fs):
 #         trainingSegment = filenames[0:training_segment_ndx]
 #         for file in trainingSegment:
 #             beatsMapping = beatsMapping.append(os.path.join(root, file))
-        
 #     # Determines the average inter beat interval length in seconds for each song
 #     fileNumber = 1
 #     beatLength = np.ones(len(beatsMapping))
