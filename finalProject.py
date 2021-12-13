@@ -112,7 +112,7 @@ def movAvg(sFlux, windowSize):
     
     avgVec = np.zeros(sFlux.shape[0])
     beg_zero_pad = np.zeros(windowSize)
-    end_zero_pad = np.zeros(1);
+    end_zero_pad = np.zeros(1)
     for i in np.arange(0, len(sFlux)):
         
         if i < windowSize:
@@ -172,6 +172,21 @@ def onset_detector(path, blockSize, hopSize, avgWindow, f_over_fn):
     
     return onsetTimes
 
+def peak_compare(sFlux, sFlux_smoothed, avgVec, t, path):
+    #Just a placeholder idea
+    correct = 0
+    wrong = 0
+    ourPeak = peakPicker(sFlux, sFlux_smoothed, avgVec,t)
+    for num in range(len(sFlux)):
+        if ourPeak[num] == path[num]:
+            correct += 1
+        else:
+            wrong += 1
+    
+
+def drum_transcription(audioFile, dataset):
+    x = 0
+
 
 # def create_training_dataSet(datasetPath):
      
@@ -216,11 +231,7 @@ def onset_detector(path, blockSize, hopSize, avgWindow, f_over_fn):
         
 #         timeStamp = np.readtxt(txtPath)[:, 0]
 #         drumClass = np.readtxt(txtPath)[:, 1]
-        
-        
-         
-
-      
+             
                 
                 
                 
