@@ -44,6 +44,17 @@ def ToolReadAudio(cAudioFilePath):
 
     return (samplerate, audio)
 
+def filter_audio(audio):
+    
+    kfb, kfa = butter(4, 0.004535, 'lowpass')
+    sfb, sfa = butter(4, [0.00907, 0.090703], 'bandpass')
+    hfb, hfa = butter(4, 0.3628, 'highpass')
+    kickAudio = filtfilt(kfb, kfa, audio)
+    snareAudio = filtfilt(sfb, sfa, audio)
+    hihatAudio = filtfilt(hfb, hfa, audio)
+    
+    return kickAudio, snareAudio, hihatAudio
+
 def block_audio(x,blockSize,hopSize,fs):
     # allocate memory
     numBlocks = math.ceil(x.size / hopSize)
@@ -61,10 +72,7 @@ def compute_spectrogram(xb, fs):
     numBlocks = xb.shape[0]
     afWindow = 0.5 - (0.5 * np.cos(2 * np.pi / xb.shape[1] * np.arange(xb.shape[1])))
     X = np.zeros([math.ceil(xb.shape[1]/2+1), numBlocks])
-    f_min = 0
-    f_max = fs/2
-    f = np.linspace(f_min, f_max, xb.shape[0]+2)
-    fInHz = f[1:xb.shape[0]+1]
+    fInHz = np.arange(0, X.shape[0])*fs/(xb.shape[1])
     
     for n in range(0, numBlocks):
         # apply window
@@ -236,7 +244,7 @@ def extractMFCC(files, numMFCC=13, fs=44100):
     return feature_vec
 
 ### Load in the model ###
-modelfilePath = 'ACA Final Project/knn_model.sav'
+modelfilePath = 'knn_model.sav'
 loaded_model = pickle.load(open(modelfilePath, 'rb'))
 
 
@@ -333,8 +341,8 @@ def compare_instrument(audio_filepath,remove_repeat_Onsets,dataset_dict):
 # audio_filepath = 'ACA Final Project/MDBDrums-master/MDB Drums/audio/drum_only/MusicDelta_80sRock_Drum.wav'
 # evaluation(annotation_filepath,audio_filepath)
 
-Annotation_folder = 'ACA Final Project/MDBDrums-master/MDB Drums/annotations/class'
-Audio_folder = 'ACA Final Project/MDBDrums-master/MDB Drums/audio/drum_only'
+Annotation_folder = 'MDB Drums/annotations/class'
+Audio_folder = 'MDB Drums/audio/drum_only'
 for file in os.listdir(Annotation_folder):
     split1 = file.split('_')
     audioName = split1[0] + '_' + split1[1] + '_Drum.wav'
