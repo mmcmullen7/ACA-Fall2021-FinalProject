@@ -286,10 +286,22 @@ def compare_onset(remove_repeat_Onsets, onsetTimes):
                 predicted_onsets_dataset.append(remove_repeat_Onsets[i])
                 predicted_onsets.append(onsetTimes[j])
                 break
+    false_possitives = []
+    for i in range(len(onsetTimes)):
+        ticker = 0
+        for j in range(len(remove_repeat_Onsets)):
+            if onsetTimes[i] - threshold < remove_repeat_Onsets[j] < onsetTimes[i] + threshold:
+                ticker = ticker + 1
+                break
+        
+        if ticker == 0:
+            false_possitives.append(onsetTimes[i])
+    false_possitives = len(np.array(false_possitives))        
     predicted_onsets_dataset = np.array(predicted_onsets_dataset)
     predicted_onsets = np.array(predicted_onsets)
     missed_onset = len(remove_repeat_Onsets) - predicted_onsets.shape[0]
     print('missed onset (+-{}):'.format(threshold), missed_onset)
+    print('false possitives:', false_possitives)
     SAD_cal = np.sum(np.abs(predicted_onsets_dataset - predicted_onsets))
     print('Sum Absolute Difference:', SAD_cal)
 
