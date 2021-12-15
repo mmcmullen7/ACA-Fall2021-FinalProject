@@ -1,0 +1,38 @@
+Instrument	Articulation	Intensity	Position	Height	Examples	
+Bright Crash	Clamp	1	1	1-4	4
+Bright Crash	Crash	1	1	1-4	4
+Bright Crash	Tip	1	1-3	1-4	4
+Dark Crash	Clamp	1	1	1-4	4
+Dark Crash	Crash	1	1	1-4	4
+Dark Crash	Tip	1	1-3	1-4	4
+HiHat	Tip	1-5	1-3	1-4	4
+HiHat	Foot	1	1-5	1-4	4
+Ride	Tip	1	1-3	1-4	4
+Long Kick	Press	1	1	1-5	6
+Long Kick	Release 	1	1	1-5	6
+Long Kick SNoff	Press	1	1	1-5	6
+Long Kick SNOff	Release 	1	1	1-5	6	
+Dead Kick	Press	1	1	1-5	6
+Dead Kick	Release 	1	1	1-5	6
+Dead Kick SNoff	Press	1	1	1-5	6
+Dead Kick SNOff	Release 	1	1	1-5	6
+Rack Tom	Buzz	1-2	1-2	1-4	4
+Rack Tom	Rim	1	1-3	1-4	4
+Rack Tom	Strike	1-3	1-2	1-4	4
+Rack Tom SNOff	Buzz	1-2	1-2	1-4	4
+Rack Tom SNOff	Rim	1	1-3	1-4	4
+Rack Tom SNOff	Strike	1-3	1-2	1-4	4
+Floor Tom	Buzz	1-2	1-2	1-4	4
+Floor Tom	Rim	1	1-3	1-4	4
+Floor Tom	Strike	1-3	1-2	1-4	4
+Floor Tom SNOff	Buzz	1-2	1-2	1-4	4
+Floor Tom SNOff	Rim	1	1-3	1-4	4
+Floor Tom SNOff	Strike	1-3	1-2	1-4	4
+Snare	Buzz	1-3	1-3	1-4	4
+Snare	Rim	1-3	1-3	1-4	4
+Snare	Strike	1-3	1-3	1-4	4
+Snare	Cross Stick	1-3	1-2	1-4	4
+Snare SNOff	Buzz	1-3	1-3	1-4	4
+Snare SNOff	Rim	1-3	1-3	1-4	4
+Snare SNOff	Strike	1-3	1-3	1-4	4
+Snare SNOff	Cross Stick	1-3	1-2	1-4	4
